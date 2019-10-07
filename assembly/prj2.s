@@ -24,13 +24,15 @@ vector0:
 main:	lea $sp, initsp                         ! initialize the stack pointer
         lw $sp, 0($sp)                          ! finish initialization
 
-                                                ! Install timer interrupt handler into vector table
-        noop                                    ! FIX ME
+        lea     $t0, vector0                    ! Install timer interrupt handler into vector table
+        lea     $t1, timer_handler
+        sw      $t0, 1($t0)
+        
+        lea     $t0, vector0                    ! Install keyboard interrupt handler into vector table
+        lea     $t1, keyboard_handler
+        sw      $t0, 2($t0)
 
-                                                ! Install keyboard interrupt handler into vector table
-        noop                                    ! FIX ME
-
-        noop                                    ! Enable interrupts
+        ei                                      ! Enable interrupts
 
         lea $a0, BASE                           ! load base for pow
         lw $a0, 0($a0)
@@ -93,10 +95,118 @@ AGAIN:  add $v0, $v0, $a0                       ! return value += argument0
         jalr $zero, $ra                         ! return from mult
 
 timer_handler:
-        noop                                    ! FIX ME
+        addi    $sp, $sp, -1                    ! save $k0
+        sw      $k0, 0($sp)                     
+
+        ei                                      ! enable interrupt
+
+        addi    $sp, $sp, -14                    ! save the state of the program
+        sw      $at, 14($sp)
+        sw      $v0, 13($sp)
+        sw      $a0, 12($sp)
+        sw      $a1, 11($sp)
+        sw      $a2, 10($sp)
+        sw      $t0, 9($sp)
+        sw      $t1, 8($sp)
+        sw      $t2, 7($sp)
+        sw      $s0, 6($sp)
+        sw      $s1, 5($sp)
+        sw      $s2, 4($sp)
+        sw      $k0, 3($sp)
+        sw      $sp, 2($sp)
+        sw      $fp, 1($sp)
+        sw      $ra, 0($sp)
+
+
+        lea     $t0, ticks                      ! increment the counter ticks
+        lw      $t1, 0($t0)
+        addi    $t2, $t1, 1
+        sw      $t2, 0($t0)
+
+
+        lw      $at, 14($sp)                    ! restore the state of the program
+        lw      $v0, 13($sp)
+        lw      $a0, 12($sp)
+        lw      $a1, 11($sp)
+        lw      $a2, 10($sp)
+        lw      $t0, 9($sp)
+        lw      $t1, 8($sp)
+        lw      $t2, 7($sp)
+        lw      $s0, 6($sp)
+        lw      $s1, 5($sp)
+        lw      $s2, 4($sp)
+        lw      $k0, 3($sp)
+        lw      $sp, 2($sp)
+        lw      $fp, 1($sp)
+        lw      $ra, 0($sp)
+        addi    $sp, $sp, 14
+
+        di                                      ! disable interrupt
+
+        lw      $k0, 0($sp)                     ! restore $k0
+        addi 	$sp, $sp, 1
+
+        reti
+
+
 
 keyboard_handler:
-        noop                                    ! FIX ME
+        addi    $sp, $sp, -1                    ! save $k0
+        sw      $k0, 0($sp)                     
+
+        ei                                      ! enable interrupt
+
+        addi    $sp, $sp, -14                    ! save the state of the program
+        sw      $at, 14($sp)
+        sw      $v0, 13($sp)
+        sw      $a0, 12($sp)
+        sw      $a1, 11($sp)
+        sw      $a2, 10($sp)
+        sw      $t0, 9($sp)
+        sw      $t1, 8($sp)
+        sw      $t2, 7($sp)
+        sw      $s0, 6($sp)
+        sw      $s1, 5($sp)
+        sw      $s2, 4($sp)
+        sw      $k0, 3($sp)
+        sw      $sp, 2($sp)
+        sw      $fp, 1($sp)
+        sw      $ra, 0($sp)
+
+
+        lea     $t0, key_buf_ptr                ! handler code
+        lw      $t1, 0($t0)
+        in      $t2, 0x2                     
+        sw      $t2, 0($t1)
+        addi    $t2, $t1, 1
+        sw      $t2, 0($t0)
+
+
+        lw      $at, 14($sp)                    ! restore the state of the program
+        lw      $v0, 13($sp)
+        lw      $a0, 12($sp)
+        lw      $a1, 11($sp)
+        lw      $a2, 10($sp)
+        lw      $t0, 9($sp)
+        lw      $t1, 8($sp)
+        lw      $t2, 7($sp)
+        lw      $s0, 6($sp)
+        lw      $s1, 5($sp)
+        lw      $s2, 4($sp)
+        lw      $k0, 3($sp)
+        lw      $sp, 2($sp)
+        lw      $fp, 1($sp)
+        lw      $ra, 0($sp)
+        addi    $sp, $sp, 14
+
+        di                                      ! disable interrupt
+
+        lw      $k0, 0($sp)                     ! restore $k0
+        addi    $sp, $sp, 1
+
+        reti
+
+
 
 initsp: .fill 0xA000
 
